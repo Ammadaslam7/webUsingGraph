@@ -9,11 +9,11 @@ s = Service(webdriver_path)
 driver = webdriver.Chrome(service=s)
 
 # Open the webpage
-url = 'https://finance.yahoo.com/news/asml-orders-plunge-chipmakers-pause-100726739.html/'
+url = 'https://www.allure.com/story/2024-wnba-draft-beauty-looks/'
 driver.get(url)
 
 # Find the article content
-article_content_element = driver.find_element(By.CLASS_NAME, 'caas-xray-pills-container')
+article_content_element = driver.find_element(By.XPATH, "//div[@class='BodyWrapper-kufPGa ftPVTv body body__container article__body']//p[starts-with(., 'The much anticipated') and contains(., 'Many of the draft')]")
 
 # Extract the text content of the article
 article_content = article_content_element.text
