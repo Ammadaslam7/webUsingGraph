@@ -9,11 +9,11 @@ s = Service(webdriver_path)
 driver = webdriver.Chrome(service=s)
 
 # Open the webpage
-url = 'https://finance.yahoo.com/news/asml-orders-plunge-chipmakers-pause-100726739.html/'
+url = 'https://blog.hubspot.com/sales/closing-should-start-at-your-first-sales-meeting?hubs_content=blog.hubspot.com%252Fmarketing&hubs_content-cta=null&hubs_post-cta=blognavcard-sales/'
 driver.get(url)
 
 # Find the article content
-article_content_element = driver.find_element(By.CLASS_NAME, 'caas-xray-pills-container')
+article_content_element = driver.find_element(By.CLASS_NAME, 'blog-post-body')
 
 # Extract the text content of the article
 article_content = article_content_element.text
@@ -22,7 +22,7 @@ article_content = article_content_element.text
 driver.quit()
 
 # Write the article content to an Excel file
-output_file = 'finance.xlsx'
+output_file = 'marketing.xlsx'
 
 # Load existing workbook if it exists, otherwise create a new one
 try:

@@ -22,7 +22,7 @@ article_content = article_content_element.text
 driver.quit()
 
 # Write the article content to an Excel file
-output_file = 'finance.xlsx'
+output_file = 'fashion.xlsx'
 
 # Load existing workbook if it exists, otherwise create a new one
 try:
