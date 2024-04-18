@@ -11,7 +11,7 @@ nltk.download('punkt')
 nltk.download('stopwords')
 
 # Load DOCX file
-docx_path = r'd:\Work\Semester 6\GT\Project 1\webUsingGraph\scrapping\Business and finance\Document 15.docx'
+docx_path = r'd:\Work\Semester 6\GT\Project 1\webUsingGraph\scrapping\Marketing and Sales\Document 15.docx'
 doc = Document(docx_path)
 
 # Extract text from DOCX
