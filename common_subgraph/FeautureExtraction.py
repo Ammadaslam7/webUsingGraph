@@ -50,7 +50,11 @@ def graph_distance(graph1, graph2):
 # Main function
 def main():
     # Path to the CSV file
+<<<<<<< Updated upstream
     csv_file = r'C:\BSCS6\webUsingGraph\csv\TrainingSetCsv.csv'
+=======
+    csv_file = r"C:\BSCS6\webUsingGraph\csv\TrainingSetCsv.csv"
+>>>>>>> Stashed changes
     # Path to the output folder to store CSV files for each graph
     output_folder = 'common_subgraphs'  # Updated folder name
 
