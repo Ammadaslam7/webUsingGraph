@@ -22,7 +22,7 @@ def create_graph(text):
     return G
 
 # Read CSV file
-data = pd.read_csv("C:\BSCS6\webUsingGraph\csv\MergeCsv.csv", encoding='latin1')
+data = pd.read_csv("D:\Work\Semester 6\GT\Project 1\webUsingGraph\csv\MergeCsv.csv", encoding='latin1')
 print("Data loaded from CSV:")
 print(data.head())  # Print first few rows of the DataFrame
 
