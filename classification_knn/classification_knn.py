@@ -1,37 +1,28 @@
-from itertools import combinations
-from collections import Counter
-import networkx as nx
 import pandas as pd
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score # type: ignore
+import networkx as nx
+from collections import Counter
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report
 
 # Assuming you have these functions and variables defined
-from preprocessing import document_graphs, create_graph
+from data_helpers import create_graph, vectorize_text
 
 # Function to compute the maximal common subgraph (MCS) between two graphs
 def compute_mcs(G1, G2):
-    # Convert graphs to edge sets
-    edges1 = set(G1.edges())
-    edges2 = set(G2.edges())
-
-    # Compute the intersection of edges
-    common_edges = edges1.intersection(edges2)
-
-    # Create a new graph with common edges
-    mcs_graph = nx.Graph(list(common_edges))
-
-    return mcs_graph
+    return nx.intersection(G1, G2)
 
 # Function to compute distance between two graphs based on MCS
 def compute_distance(G1, G2):
     mcs_graph = compute_mcs(G1, G2)
-    return -len(mcs_graph.edges())
+    return 1 - len(mcs_graph)/max(len(G1), len(G2))
 
 # Function to perform kNN classification
-def knn_classify(test_graph, k, data):
+def graph_knn(train_graphs, train_categories, test_graph, k):
     distances = []
 
     # Compute distance between test_graph and each training graph
-    for train_id, train_graph in document_graphs.items():
+    for train_id, train_graph in enumerate(train_graphs):
         try:
             distance = compute_distance(test_graph, train_graph)
             distances.append((train_id, distance))
@@ -39,62 +30,62 @@ def knn_classify(test_graph, k, data):
             print(f"Error computing distance for train_id {train_id}: {e}")
 
     # Sort distances in ascending order
-    distances.sort(key=lambda x: x[1])
+    distances.sort(key = lambda x: x[1])
 
     # Get the k-nearest neighbors
     neighbors = distances[:k]
 
     # Get categories of the neighbors
-    neighbor_categories = [data.loc[i, 'type'] for i, _ in neighbors]
+    neighbor_categories = list(map(lambda x: train_categories[x[0]], neighbors))
 
     # Find the majority class
     majority_class = Counter(neighbor_categories).most_common(1)[0][0]
 
     return majority_class
 
-# Read the data
+def vector_knn(X_train, y_train, X_test, k):
+    knn_classifier = KNeighborsClassifier(n_neighbors=k)
+    knn_classifier.fit(X_train, y_train)
+    y_pred = knn_classifier.predict(X_test).tolist()
+    return y_pred
+
 try:
-    data = pd.read_csv("D:\Work\Semester 6\GT\Project 1\webUsingGraph\csv\MergeCsv.csv", encoding='latin1')
+    # Read CSV file
+    data = pd.read_csv("csv\MergeCsv.csv", encoding = 'latin1')
+    # data = pd.read_csv("D:\Work\Semester 6\GT\Project 1\webUsingGraph\csv\MergeCsv.csv", encoding='latin1')
+
 except FileNotFoundError:
     print("Error: 'merged_file.csv' not found. Please check the file path.")
 
-# Create graph representations for test documents
-test_documents = [
-    create_graph(str(data.iloc[44]['content'])),
-    create_graph(str(data.iloc[28]['content'])),
-    create_graph(str(data.iloc[13]['content']))
-]
+# Extract columns
+X = data['content'].tolist()
+y = data['type'].tolist()
+K = 3
 
-# Assuming you have actual categories for test documents
-actual_categories = ['Marketing and Sales', 'Fashion and Beauty', 'Business and Finance']  # Update with actual category labels
+# Split data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 42)
 
-# Calculate evaluation metrics
-try:
-    predicted_categories = []
-    for test_graph in test_documents:
-        predicted_category = knn_classify(test_graph, k=3, data=data)
-        predicted_categories.append(predicted_category)
+# Graph-based classification
+# Convert contents into graphs
+train_graphs = list(map(create_graph, X_train))
+test_graphs = list(map(create_graph, X_test))
 
-    # Calculate evaluation metrics
-    accuracy = accuracy_score(actual_categories, predicted_categories)
-    precision = precision_score(actual_categories, predicted_categories, average='weighted', zero_division=1)
-    recall = recall_score(actual_categories, predicted_categories, average='weighted')
-    f1 = f1_score(actual_categories, predicted_categories, average='weighted')
+# Perform classification
+y_pred = []
+for test_graph in test_graphs:
+    y_pred.append(graph_knn(train_graphs, y_train, test_graph, k = K))
 
-    # Generate confusion matrix
-    labels = sorted(set(actual_categories + predicted_categories))
-    conf_matrix = confusion_matrix(actual_categories, predicted_categories, labels=labels)
-    conf_matrix_df = pd.DataFrame(conf_matrix, index=labels, columns=labels)
+# Print metrics
+print("Graph-based kNN")
+print(classification_report(y_test, y_pred))
+print(confusion_matrix(y_test, y_pred))
 
-    # Display results
-    print("Predicted Categories:", predicted_categories)
-    print("Actual Categories:", actual_categories)
-    print("\nAccuracy:", accuracy)
-    print("Precision:", precision)
-    print("Recall:", recall)
-    print("F1-score:", f1)
-    print("\nConfusion Matrix:")
-    print(conf_matrix_df)
+# Vector-based classification
+train_vectors, test_vectors = vectorize_text(X_train, X_test)
+# Perform classification
+y_pred = vector_knn(train_vectors, y_train, test_vectors, k = K)
 
-except Exception as e:
-    print(f"Error during evaluation: {e}")
+# Print vector metrics
+print("\n\nVector-based kNN")
+print(classification_report(y_test, y_pred))
+print(confusion_matrix(y_test, y_pred))
